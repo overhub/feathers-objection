@@ -1,4 +1,4 @@
-import errors from '@feathersjs/errors';
+import errors from "@feathersjs/errors";
 import {
   ValidationError,
   NotFoundError,
@@ -8,12 +8,12 @@ import {
   NotNullViolationError,
   ForeignKeyViolationError,
   CheckViolationError,
-  DataError
-} from 'objection';
+  DataError,
+} from "objection";
 
-const ERROR = Symbol('feathers-knex/error');
+const ERROR = Symbol("feathers-knex/error");
 
-export default function errorHandler (error) {
+export default function errorHandler(error) {
   const { message } = error.nativeError || error;
   let feathersError;
 
@@ -21,60 +21,65 @@ export default function errorHandler (error) {
     feathersError = error;
   } else if (error instanceof ValidationError) {
     switch (error.type) {
-      case 'ModelValidation':
+      case "ModelValidation":
         feathersError = new errors.BadRequest(message, error.data);
         break;
-      case 'RelationExpression':
-        feathersError = new errors.BadRequest('Invalid Relation Expression');
+      case "RelationExpression":
+        feathersError = new errors.BadRequest("Invalid Relation Expression");
         break;
-      case 'UnallowedRelation':
-        feathersError = new errors.BadRequest('Unallowed Relation Expression');
+      case "UnallowedRelation":
+        feathersError = new errors.BadRequest("Unallowed Relation Expression");
         break;
-      case 'InvalidGraph':
-        feathersError = new errors.BadRequest('Invalid Relation Graph');
+      case "InvalidGraph":
+        feathersError = new errors.BadRequest("Invalid Relation Graph");
         break;
       default:
-        feathersError = new errors.BadRequest('Unknown Validation Error');
+        feathersError = new errors.BadRequest("Unknown Validation Error");
     }
   } else if (error instanceof NotFoundError) {
     feathersError = new errors.NotFound(message);
   } else if (error instanceof UniqueViolationError) {
-    if (error.client === 'mysql') {
+    if (error.client === "mysql") {
       feathersError = new errors.Conflict(error.nativeError.sqlMessage, {
-        constraint: error.constraint
+        constraint: error.constraint,
       });
     } else {
-      feathersError = new errors.Conflict(`${error.columns.join(', ')} must be unique`, {
-        columns: error.columns,
-        table: error.table,
-        constraint: error.constraint
-      });
+      feathersError = new errors.Conflict(
+        `${error.columns.join(", ")} must be unique`,
+        {
+          columns: error.columns,
+          table: error.table,
+          constraint: error.constraint,
+        }
+      );
     }
   } else if (error instanceof NotNullViolationError) {
     feathersError = new errors.BadRequest(`${error.column} must not be null`, {
       column: error.column,
-      table: error.table
+      table: error.table,
     });
   } else if (error instanceof ForeignKeyViolationError) {
-    feathersError = new errors.Conflict('Foreign Key Violation', {
+    feathersError = new errors.Conflict("Foreign Key Violation", {
       table: error.table,
-      constraint: error.constraint
+      constraint: error.constraint,
     });
   } else if (error instanceof CheckViolationError) {
-    feathersError = new errors.BadRequest('Check Violation', {
+    feathersError = new errors.BadRequest("Check Violation", {
       table: error.table,
-      constraint: error.constraint
+      constraint: error.constraint,
     });
   } else if (error instanceof ConstraintViolationError) {
-    feathersError = new errors.Conflict('Constraint Violation', {
+    feathersError = new errors.Conflict("Constraint Violation", {
       columns: error.columns,
       table: error.table,
-      constraint: error.constraint
+      constraint: error.constraint,
     });
   } else if (error instanceof DataError) {
-    feathersError = new errors.BadRequest('Invalid Data');
+    feathersError = new errors.BadRequest("Invalid Data");
   } else if (error instanceof DBError) {
-    feathersError = new errors.GeneralError('Unknown Database Error');
+    feathersError = new errors.GeneralError(
+      `Unknown Database Error : ${error.message}`
+    );
   } else {
     feathersError = new errors.GeneralError(message);
   }
