@@ -74,7 +74,7 @@ export default function errorHandler (error) {
   } else if (error instanceof DataError) {
     feathersError = new errors.BadRequest('Invalid Data');
   } else if (error instanceof DBError) {
-    feathersError = new errors.GeneralError('Unknown Database Error');
+    feathersError = new errors.GeneralError(`Unknown Database Error : ${error.message}`);
   } else {
     feathersError = new errors.GeneralError(message);
   }
